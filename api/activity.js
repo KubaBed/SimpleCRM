@@ -1,7 +1,7 @@
 import { createSupabaseClient } from './_lib/supabase.js'
 
 export default async function handler(req, res) {
-  const { id } = req.query
+  const { lead_id } = req.query
   const supabase = createSupabaseClient()
 
   if (req.method !== 'GET') {
@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
   const { data, error } = await supabase.from('activities')
     .select('*')
-    .eq('lead_id', id)
+    .eq('lead_id', lead_id)
     .order('created_at', { ascending: false })
 
   if (error) return res.status(500).json({ error: error.message })

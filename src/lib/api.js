@@ -30,11 +30,11 @@ export function deleteLead(id) {
 }
 
 export function getTasks(leadId) {
-  return request(`/leads/${leadId}/tasks`)
+  return request(`/tasks?lead_id=${leadId}`)
 }
 
 export function createTask(leadId, data) {
-  return request(`/leads/${leadId}/tasks`, { method: 'POST', body: JSON.stringify(data) })
+  return request(`/tasks?lead_id=${leadId}`, { method: 'POST', body: JSON.stringify(data) })
 }
 
 export function updateTask(taskId, data) {
@@ -42,5 +42,5 @@ export function updateTask(taskId, data) {
 }
 
 export function getActivity(leadId) {
-  return request(`/leads/${leadId}/activity`)
+  return request(`/activity?lead_id=${leadId}`)
 }
