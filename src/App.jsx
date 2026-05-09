@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast'
 import Layout from './components/Layout'
 import Dashboard from './components/Dashboard'
 import LeadModal from './components/LeadModal'
+import TasksPage from './components/TasksPage'
 
 export default function App() {
   const [selectedLead, setSelectedLead] = useState(null)
@@ -20,7 +21,7 @@ export default function App() {
               onAddLead={() => { setSelectedLead(null); setModalMode('add') }}
             />
           } />
-          <Route path="tasks" element={<div className="p-8 text-gray-400">Zadania — coming soon</div>} />
+          <Route path="tasks" element={<TasksPage />} />
         </Route>
       </Routes>
       {(modalMode === 'view' && selectedLead) && (

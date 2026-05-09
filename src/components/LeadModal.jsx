@@ -1,12 +1,99 @@
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import toast from 'react-hot-toast'
+import LeadForm from './LeadForm'
+import NotesSection from './NotesSection'
+import ActivityTimeline from './ActivityTimeline'
+import TaskList from './TaskList'
+import { useLeads } from '../hooks/useLeads'
+import { createLead, updateLead } from '../lib/api'
+
 export default function LeadModal({ lead, onClose }) {
+  const isNew = !lead
+  const [currentLead, setCurrentLead] = useState(lead)
+  const { refetch } = useLeads()
+  const [activeTab, setActiveTab] = useState('info')
+
+  const handleSave = async (data) => {
+    try {
+      if (isNew) {
+        const created = await createLead(data)
+        setCurrentLead(created)
+        toast.success('Lead utworzony')
+      } else {
+        const updated = await updateLead(currentLead.id, data)
+        setCurrentLead(updated)
+        toast.success('Zapisano')
+      }
+      refetch()
+    } catch (err) {
+      toast.error(err.message)
+    }
+  }
+
+  const tabs = [
+    { key: 'info', label: 'Informacje' },
+    { key: 'notes', label: 'Notatki' },
+    { key: 'tasks', label: 'Zadania' },
+  ]
+  if (!isNew) tabs.push({ key: 'activity', label: 'Historia' })
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-end">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-white h-full shadow-xl p-6 overflow-auto">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
-        <h3 className="text-lg font-bold mb-4">{lead ? `${lead.first_name} ${lead.last_name}` : 'Nowy lead'}</h3>
-        <p className="text-gray-400">Lead detail — coming soon</p>
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-end">
+        <motion.div
+          className="absolute inset-0 bg-black/30"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+        />
+        <motion.div
+          className="relative w-full max-w-lg bg-white h-full shadow-xl flex flex-col"
+          initial={{ x: 100, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: 100, opacity: 0 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        >
+          <div className="flex items-center justify-between p-6 border-b border-gray-100">
+            <h3 className="text-lg font-bold text-gray-900">
+              {isNew ? 'Nowy lead' : `${currentLead?.first_name || ''} ${currentLead?.last_name || ''}`}
+            </h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+          </div>
+
+          <div className="flex border-b border-gray-100 px-6">
+            {tabs.map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === tab.key
+                    ? 'border-gray-900 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex-1 overflow-auto p-6">
+            {activeTab === 'info' && (
+              <LeadForm lead={currentLead} onSave={handleSave} isNew={isNew} />
+            )}
+            {activeTab === 'notes' && currentLead && (
+              <NotesSection leadId={currentLead.id} notes={currentLead.notes} />
+            )}
+            {activeTab === 'tasks' && currentLead && (
+              <TaskList leadId={currentLead.id} />
+            )}
+            {activeTab === 'activity' && currentLead && (
+              <ActivityTimeline leadId={currentLead.id} />
+            )}
+          </div>
+        </motion.div>
       </div>
-    </div>
+    </AnimatePresence>
   )
 }
