@@ -6,6 +6,7 @@ import NotesSection from './NotesSection'
 import ActivityTimeline from './ActivityTimeline'
 import TaskList from './TaskList'
 import { formatRelativePl } from '../lib/dates'
+import { generateLeadBrief } from '../lib/api'
 
 export default function LeadModal({ lead, onClose, onSave, onDelete, onContact, onGenerateBrief }) {
   const isNew = !lead
@@ -30,6 +31,22 @@ export default function LeadModal({ lead, onClose, onSave, onDelete, onContact, 
     }
   }
 
+  const handleGenerateBrief = async () => {
+    if (!currentLead?.id || generatingBrief) return
+    setGeneratingBrief(true)
+    const toastId = toast.loading('Generuję brief…')
+    try {
+      const { lead: updated } = await generateLeadBrief(currentLead.id)
+      setCurrentLead(updated)
+      setActiveTab('notes')
+      toast.success('Brief gotowy', { id: toastId })
+    } catch (err) {
+      toast.error(err.message || 'Nie udało się wygenerować briefu', { id: toastId })
+    } finally {
+      setGeneratingBrief(false)
+    }
+  }
+
   const handleDeleteClick = async () => {
     if (!currentLead || !onDelete) return
     const name = `${currentLead.first_name || ''} ${currentLead.last_name || ''}`.trim() || 'tego leada'
@@ -45,14 +62,16 @@ export default function LeadModal({ lead, onClose, onSave, onDelete, onContact, 
   }
 
   const handleGenerateBrief = async () => {
-    if (!currentLead || !onGenerateBrief || !currentLead.website) return
+    if (!currentLead?.id || generatingBrief || !currentLead.website || !onGenerateBrief) return
     setGeneratingBrief(true)
+    const toastId = toast.loading('Generuję brief…')
     try {
-      const result = await onGenerateBrief(currentLead.id)
-      setCurrentLead(prev => ({ ...prev, notes: result.notes || prev.notes }))
-      toast.success('Brief wygenerowany! Sprawdź zakładkę Notatki.')
+      const { lead: updated } = await onGenerateBrief(currentLead.id)
+      setCurrentLead(updated)
+      setActiveTab('notes')
+      toast.success('Brief gotowy', { id: toastId })
     } catch (err) {
-      toast.error(err.message || 'Nie udało się wygenerować briefu')
+      toast.error(err.message || 'Nie udało się wygenerować briefu', { id: toastId })
     } finally {
       setGeneratingBrief(false)
     }
@@ -121,16 +140,15 @@ export default function LeadModal({ lead, onClose, onSave, onDelete, onContact, 
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900"
                 >⌘</a>
               )}
-              {!isNew && currentLead?.website && onGenerateBrief && (
+              {!isNew && currentLead?.website && (
                 <button
                   type="button"
-                  title="Generuj brief ze strony"
                   onClick={handleGenerateBrief}
                   disabled={generatingBrief}
+                  title="Wygeneruj brief ze strony WWW"
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {generatingBrief ? '⏳' : '📄'}
-                </button>
+                >{generatingBrief ? '…' : '📄'}</button>
+              )}
               )}
               {!isNew && currentLead?.email && (
                 <button
