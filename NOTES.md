@@ -21,6 +21,20 @@
 - Smoke test passed: `GET /api/leads` 200, `POST /api/leads` 201, activity auto-utworzony, roundtrip OK. Test lead `Test User` zostawiony w bazie jako seed.
 - **Bugfix `vercel.json`**: oryginalny rewrite `(?!api/).*` łapał też pliki źródłowe Vite w dev (`/src/main.jsx` → serwowany jako `index.html` → Vite parsing crash "invalid JS syntax"). Zmieniony na `(?!api/|@|.+\..+)` — wyklucza paths z `@` (Vite virtuals) i z kropką (asset extensions). Działa identycznie w dev i prod.
 
+## 2026-05-10 (cd. 3) — Security audit pass
+
+- Pełny audit przed dalszą ekspozycją. Status: **PASSED**. Pełen zapis w `wiki/projects/simple-crm.md` sekcja "Security audit (2026-05-10)".
+- Findings + fixy:
+  - Rate limit na `/api/auth/login` (5 fails/60s → 5min lockout 429).
+  - Open redirect w `/login?next=...` — sanitize regex `^/[^/\\]` na client (`Login.jsx`) i middleware.
+  - Security headers w `vercel.json` (X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy, HSTS preload-eligible).
+  - RLS deny-anon na wszystkich 4 tabelach + FORCE RLS. Service role omija (backend działa).
+  - Supabase advisor flagował `rls_auto_enable()` — REVOKE EXECUTE od `anon`/`authenticated`/PUBLIC. Advisor → 0 lints.
+- Verified: anon Supabase REST → `[]`, service role → dane, `/rpc/rls_auto_enable` → 401, prod headers all set, prod rate limit 5x401 → 429.
+- npm audit: 0 vulnerabilities. Brak sekretów w git history.
+- **Out of scope (accepted)**: brak CSP (Vite inline-script complications), brak CSRF tokens (rely SameSite=Lax), brak distributed rate limit, brak audit log.
+- **Action items dla Kuby**: rotuj `APP_PASSWORD`, `GMAIL_APP_PASSWORD`, opcjonalnie `SESSION_SECRET` (wszystkie wisiały w chacie).
+
 ## 2026-05-10 (cd. 2) — Gmail cron + Vercel prod + GitHub Actions
 
 - Cherry-pick `7b524e8` z sandbox brancha — `dev-api.js` (Vite plugin) zastąpił `vercel dev`. Single-process `npm run dev` na :5173 z `/api/*`.
