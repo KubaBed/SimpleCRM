@@ -1,6 +1,20 @@
 import { ImapFlow } from 'imapflow'
 import { createSupabaseClient } from '../_lib/supabase.js'
 
+const DEFAULT_SKIP_PATTERNS = 'noreply,no-reply,donotreply,mailer-daemon,postmaster,notifications,notification,alerts,alert,billing,newsletter'
+
+function getSkipPatterns() {
+  return (process.env.SKIP_EMAIL_PATTERNS || DEFAULT_SKIP_PATTERNS)
+    .split(',')
+    .map(p => p.trim().toLowerCase())
+    .filter(Boolean)
+}
+
+function shouldSkipEmail(email) {
+  const lower = email.toLowerCase()
+  return getSkipPatterns().some(pattern => lower.includes(pattern))
+}
+
 export default async function handler(req, res) {
   const authHeader = req.headers.authorization
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -50,6 +64,12 @@ export default async function handler(req, res) {
         const fromName = fromObj?.name || ''
 
         if (!messageId || !fromEmail) continue
+
+        // Skip systemowe maile (noreply, notifications, billing, etc.)
+        if (shouldSkipEmail(fromEmail)) {
+          processed++
+          continue
+        }
 
         // Idempotency — skip jeśli już przetworzony
         const { data: existing } = await supabase
