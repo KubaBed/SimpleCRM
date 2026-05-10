@@ -1,0 +1,42 @@
+name: Cron — check Gmail for new leads
+
+on:
+  schedule:
+    # GitHub schedule precision is best-effort; bursty runners can delay 5-15 min.
+    # Hobby Vercel limits crons to once/day, so we drive it from GH instead.
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cron-email
+  cancel-in-progress: false
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Hit /api/cron/check-email
+        env:
+          PROD_URL: ${{ secrets.PROD_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          response=$(curl -sS --fail-with-body \
+            --max-time 60 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            "${PROD_URL}/api/cron/check-email")
+          echo "Response: ${response}"
+          # Surface created/processed counts in step summary
+          processed=$(echo "${response}" | jq -r '.processed // 0')
+          created=$(echo "${response}" | jq -r '.created // 0')
+          errors=$(echo "${response}" | jq -r '.errors | length')
+          {
+            echo "## Email cron run"
+            echo "- Processed: ${processed}"
+            echo "- Created: ${created}"
+            echo "- Errors: ${errors}"
+          } >> "$GITHUB_STEP_SUMMARY"
