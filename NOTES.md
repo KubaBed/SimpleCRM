@@ -21,3 +21,16 @@
 - Smoke test passed: `GET /api/leads` 200, `POST /api/leads` 201, activity auto-utworzony, roundtrip OK. Test lead `Test User` zostawiony w bazie jako seed.
 - **Bugfix `vercel.json`**: oryginalny rewrite `(?!api/).*` łapał też pliki źródłowe Vite w dev (`/src/main.jsx` → serwowany jako `index.html` → Vite parsing crash "invalid JS syntax"). Zmieniony na `(?!api/|@|.+\..+)` — wyklucza paths z `@` (Vite virtuals) i z kropką (asset extensions). Działa identycznie w dev i prod.
 
+## 2026-05-10 (cd. 2) — Gmail cron + Vercel prod + GitHub Actions
+
+- Cherry-pick `7b524e8` z sandbox brancha — `dev-api.js` (Vite plugin) zastąpił `vercel dev`. Single-process `npm run dev` na :5173 z `/api/*`.
+- **Bug fix w `api/cron/check-email.js`**: oryginał używał Gmail REST API z Basic auth — Gmail REST nie wspiera Basic, tylko OAuth Bearer. Cron był 100% non-functional. Przepisany na pure IMAP via `imapflow`, auth App Password.
+- Cleanup: usunięto `express` + `dotenv` które sandbox dodał do deps ale plugin ich nie używa (Vite ma `loadEnv`).
+- Filtr Gmail-side: `to:(workshift.pl) is:unread`. Idempotency: `email_tracking.message_id`. Bez markowania jako Seen — mail zostaje unread w Gmailu, user widzi nowe leady też w skrzynce.
+- E2E test passed: testowy mail z aspiratio.com.pl → forward Gmail → cron poll → lead "Jakub Bednarz" w Kanbanie z source "Email".
+- Vercel prod deploy: `simple-crm-black-ten.vercel.app` (5 lambdas: leads/leads_[id]/tasks/tasks_[id]/cron-check-email).
+- **Vercel Hobby blokuje cron `*/5 * * * *`** (max 1× dziennie). Przeniesiono schedule do GitHub Actions (`.github/workflows/cron-email.yml`). Repo secrets: `CRON_SECRET`, `PROD_URL`. Workflow zadziałał za pierwszym strzałem (manual trigger), schedule run co ~5 min UTC.
+
+## TODO (security follow-up)
+- Rotuj App Password `apje mybc ojvk clmr` po zakończeniu sesji — wisiał w chat history.
+
