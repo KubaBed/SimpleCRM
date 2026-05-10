@@ -6,6 +6,7 @@ import Dashboard from './components/Dashboard'
 import LeadModal from './components/LeadModal'
 import TasksPage from './components/TasksPage'
 import Login from './components/Login'
+import { useLeads } from './hooks/useLeads'
 
 function AuthGate({ children }) {
   const [authState, setAuthState] = useState('loading') // loading | authed | unauthed
@@ -33,8 +34,28 @@ function AuthGate({ children }) {
 }
 
 function AuthedApp() {
+  const { leads, loading, create, update, remove } = useLeads()
   const [selectedLead, setSelectedLead] = useState(null)
   const [modalMode, setModalMode] = useState(null)
+
+  const closeModal = () => { setSelectedLead(null); setModalMode(null) }
+
+  const handleSave = async (data) => {
+    if (selectedLead) {
+      const updated = await update(selectedLead.id, data)
+      setSelectedLead(updated)
+      return updated
+    }
+    const created = await create(data)
+    setSelectedLead(created)
+    return created
+  }
+
+  const handleDelete = async () => {
+    if (!selectedLead) return
+    await remove(selectedLead.id)
+    closeModal()
+  }
 
   return (
     <>
@@ -42,6 +63,9 @@ function AuthedApp() {
         <Route path="/" element={<Layout />}>
           <Route index element={
             <Dashboard
+              leads={leads}
+              loading={loading}
+              onStageChange={(id, stage) => update(id, { stage })}
               onLeadClick={(lead) => { setSelectedLead(lead); setModalMode('view') }}
               onAddLead={() => { setSelectedLead(null); setModalMode('add') }}
             />
@@ -52,12 +76,15 @@ function AuthedApp() {
       {(modalMode === 'view' && selectedLead) && (
         <LeadModal
           lead={selectedLead}
-          onClose={() => { setSelectedLead(null); setModalMode(null) }}
+          onClose={closeModal}
+          onSave={handleSave}
+          onDelete={handleDelete}
         />
       )}
       {modalMode === 'add' && (
         <LeadModal
-          onClose={() => { setSelectedLead(null); setModalMode(null) }}
+          onClose={closeModal}
+          onSave={handleSave}
         />
       )}
     </>

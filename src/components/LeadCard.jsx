@@ -119,6 +119,18 @@ export default function LeadCard({ lead, provided, onClick }) {
               ☎
             </a>
           )}
+          {lead.website && (
+            <a
+              href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={stop}
+              title="Otwórz stronę WWW"
+              className="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-100 hover:text-gray-900 text-sm"
+            >
+              ⌘
+            </a>
+          )}
           {lead.email && (
             <button
               type="button"

@@ -11,6 +11,7 @@ export default function LeadForm({ lead, onSave, isNew }) {
     email: lead?.email || '',
     phone: lead?.phone || '',
     company_name: lead?.company_name || '',
+    website: lead?.website || '',
     industry: lead?.industry || '',
     company_size: lead?.company_size || '',
     source: lead?.source || '',
@@ -65,6 +66,19 @@ export default function LeadForm({ lead, onSave, isNew }) {
       <div>
         <label className={labelClass}>Firma</label>
         <input name="company_name" value={form.company_name} onChange={handleChange} className={inputClass} />
+      </div>
+
+      <div>
+        <label className={labelClass}>Strona WWW</label>
+        <input
+          name="website"
+          type="url"
+          inputMode="url"
+          placeholder="https://..."
+          value={form.website}
+          onChange={handleChange}
+          className={inputClass}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-3">

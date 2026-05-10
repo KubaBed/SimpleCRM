@@ -7,6 +7,7 @@ CREATE TABLE leads (
   email TEXT,
   phone TEXT,
   company_name TEXT,
+  website TEXT,
   industry TEXT,
   company_size TEXT,
   source TEXT,

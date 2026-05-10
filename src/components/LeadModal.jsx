@@ -5,29 +5,34 @@ import LeadForm from './LeadForm'
 import NotesSection from './NotesSection'
 import ActivityTimeline from './ActivityTimeline'
 import TaskList from './TaskList'
-import { useLeads } from '../hooks/useLeads'
-import { createLead, updateLead } from '../lib/api'
 
-export default function LeadModal({ lead, onClose }) {
+export default function LeadModal({ lead, onClose, onSave, onDelete }) {
   const isNew = !lead
   const [currentLead, setCurrentLead] = useState(lead)
-  const { refetch } = useLeads()
   const [activeTab, setActiveTab] = useState('info')
+  const [deleting, setDeleting] = useState(false)
 
   const handleSave = async (data) => {
     try {
-      if (isNew) {
-        const created = await createLead(data)
-        setCurrentLead(created)
-        toast.success('Lead utworzony')
-      } else {
-        const updated = await updateLead(currentLead.id, data)
-        setCurrentLead(updated)
-        toast.success('Zapisano')
-      }
-      refetch()
+      const result = await onSave(data)
+      if (result) setCurrentLead(result)
+      toast.success(isNew ? 'Lead utworzony' : 'Zapisano')
     } catch (err) {
-      toast.error(err.message)
+      toast.error(err.message || 'Coś poszło nie tak')
+    }
+  }
+
+  const handleDeleteClick = async () => {
+    if (!currentLead || !onDelete) return
+    const name = `${currentLead.first_name || ''} ${currentLead.last_name || ''}`.trim() || 'tego leada'
+    if (!window.confirm(`Usunąć leada "${name}"? Tej operacji nie można cofnąć.`)) return
+    setDeleting(true)
+    try {
+      await onDelete()
+      toast.success('Lead usunięty')
+    } catch (err) {
+      toast.error(err.message || 'Nie udało się usunąć')
+      setDeleting(false)
     }
   }
 
@@ -37,6 +42,8 @@ export default function LeadModal({ lead, onClose }) {
     { key: 'tasks', label: 'Zadania' },
   ]
   if (!isNew) tabs.push({ key: 'activity', label: 'Historia' })
+
+  const showDelete = !isNew && typeof onDelete === 'function'
 
   return (
     <AnimatePresence>
@@ -73,6 +80,15 @@ export default function LeadModal({ lead, onClose }) {
                   title="Zadzwoń"
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900"
                 >☎</a>
+              )}
+              {!isNew && currentLead?.website && (
+                <a
+                  href={currentLead.website.startsWith('http') ? currentLead.website : `https://${currentLead.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Otwórz stronę WWW"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                >⌘</a>
               )}
               {!isNew && currentLead?.email && (
                 <button
@@ -126,6 +142,19 @@ export default function LeadModal({ lead, onClose }) {
               <ActivityTimeline leadId={currentLead.id} />
             )}
           </div>
+
+          {showDelete && (
+            <div className="border-t border-gray-100 p-4">
+              <button
+                type="button"
+                onClick={handleDeleteClick}
+                disabled={deleting}
+                className="text-sm font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {deleting ? 'Usuwam…' : '🗑 Usuń leada'}
+              </button>
+            </div>
+          )}
         </motion.div>
       </div>
     </AnimatePresence>

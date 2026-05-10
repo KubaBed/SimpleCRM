@@ -4,29 +4,23 @@ import KanbanBoard from './KanbanBoard'
 import UpcomingTasks from './UpcomingTasks'
 import EmptyState from './EmptyState'
 import SearchBar from './SearchBar'
-import { useLeads } from '../hooks/useLeads'
 
 function matchesSearch(lead, q) {
   if (!q) return true
   const needle = q.toLowerCase().trim()
   if (!needle) return true
-  return [lead.first_name, lead.last_name, lead.email, lead.company_name, lead.phone]
+  return [lead.first_name, lead.last_name, lead.email, lead.company_name, lead.phone, lead.website]
     .filter(Boolean)
     .some((s) => String(s).toLowerCase().includes(needle))
 }
 
-export default function Dashboard({ onLeadClick, onAddLead }) {
-  const { leads, loading, update } = useLeads()
+export default function Dashboard({ leads, loading, onStageChange, onLeadClick, onAddLead }) {
   const [search, setSearch] = useState('')
 
   const filteredLeads = useMemo(
     () => leads.filter((l) => matchesSearch(l, search)),
     [leads, search]
   )
-
-  const handleStageChange = (leadId, newStage) => {
-    update(leadId, { stage: newStage })
-  }
 
   if (loading) {
     return <div className="p-8 text-gray-400">Ładowanie...</div>
@@ -66,7 +60,7 @@ export default function Dashboard({ onLeadClick, onAddLead }) {
             <SearchBar
               value={search}
               onChange={setSearch}
-              placeholder="Szukaj leada (imię, firma, email, telefon)..."
+              placeholder="Szukaj leada (imię, firma, email, telefon, www)..."
             />
           </div>
 
@@ -77,7 +71,7 @@ export default function Dashboard({ onLeadClick, onAddLead }) {
           ) : (
             <KanbanBoard
               leads={filteredLeads}
-              onStageChange={handleStageChange}
+              onStageChange={onStageChange}
               onLeadClick={onLeadClick}
             />
           )}
