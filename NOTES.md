@@ -75,6 +75,7 @@
 - Frontend: `LeadModal` przycisk "📄" (⏳ podczas generowania), toast feedback, live update notatek
 - Fix: endpoint zwraca `notes: newNotes`, frontend używa `result.notes` (było `result.lead?.notes` — undefined)
 - Build: vite build OK
+- **Deploy status**: kod na masterze (commit `52b0fa2`), ale Vercel CLI wymaga ponownego logowania (`npx vercel login`) — deploy ręczny przez Kube
 
 ## TODO (security follow-up)
 - Rotuj App Password `apje mybc ojvk clmr` po zakończeniu sesji — wisiał w chat history.
