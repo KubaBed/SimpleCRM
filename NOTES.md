@@ -45,6 +45,19 @@
 - Vercel prod deploy: `simple-crm-black-ten.vercel.app` (5 lambdas: leads/leads_[id]/tasks/tasks_[id]/cron-check-email).
 - **Vercel Hobby blokuje cron `*/5 * * * *`** (max 1× dziennie). Przeniesiono schedule do GitHub Actions (`.github/workflows/cron-email.yml`). Repo secrets: `CRON_SECRET`, `PROD_URL`. Workflow zadziałał za pierwszym strzałem (manual trigger), schedule run co ~5 min UTC.
 
+## 2026-05-10 (fix) — API routes restructured for Vercel production
+
+- **Bug**: DELETE (i wszystkie) zapytania do `/api/leads/:id` i `/api/tasks/:id` zwracały 404 NOT_FOUND w produkcji.
+- **Root cause**: Vercel nie wspiera konwencji `_[param].js` (tylko `[param].js` jako struktura katalogów). Sandbox użył `leads_[id].js` który działał w `dev-api.js` lokalnie, ale Vercel nie rozpoznawał tych plików jako funkcji.
+- **Fix**:
+  - `api/leads.js` → `api/leads/index.js` (import: `../_lib/supabase.js`)
+  - `api/leads_[id].js` → `api/leads/[id].js` (import: `../_lib/supabase.js`)
+  - `api/tasks.js` → `api/tasks/index.js`
+  - `api/tasks_[id].js` → `api/tasks/[id].js`
+  - `dev-api.js`: dodano obsługę `index.js` → pusty route (zamiast `/leads/index`)
+- **Verified**: wszystkie endpointy działają na produkcji. DELETE zwraca `{"success":true}`.
+- Należy pamiętać: przy dodawaniu nowych API routes z `:param`, używać struktury `api/[resource]/[param].js`.
+
 ## TODO (security follow-up)
 - Rotuj App Password `apje mybc ojvk clmr` po zakończeniu sesji — wisiał w chat history.
 
