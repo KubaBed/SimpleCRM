@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import EmptyState from './EmptyState'
 import { getLeads } from '../lib/api'
+import { ListSkeleton, Skeleton } from './Skeleton'
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState([])
@@ -41,7 +42,12 @@ export default function TasksPage() {
     loadTasks()
   }
 
-  if (loading) return <div className="p-8 text-gray-400">Ładowanie...</div>
+  if (loading) return (
+    <div className="p-6 max-w-3xl space-y-4">
+      <Skeleton className="h-6 w-32" />
+      <ListSkeleton rows={6} />
+    </div>
+  )
 
   const pending = tasks.filter(t => !t.completed)
   const done = tasks.filter(t => t.completed)

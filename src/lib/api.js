@@ -29,6 +29,10 @@ export function deleteLead(id) {
   return request(`/leads/${id}`, { method: 'DELETE' })
 }
 
+export function recordContact(leadId) {
+  return updateLead(leadId, { last_contacted_at: new Date().toISOString() })
+}
+
 export function getTasks(leadId) {
   return request(`/tasks?lead_id=${leadId}`)
 }

@@ -40,6 +40,10 @@ function AuthedApp() {
 
   const closeModal = () => { setSelectedLead(null); setModalMode(null) }
 
+  const handleContact = (id) => {
+    update(id, { last_contacted_at: new Date().toISOString() }).catch(() => {})
+  }
+
   const handleSave = async (data) => {
     if (selectedLead) {
       const updated = await update(selectedLead.id, data)
@@ -65,9 +69,12 @@ function AuthedApp() {
             <Dashboard
               leads={leads}
               loading={loading}
+              modalOpen={modalMode != null}
               onStageChange={(id, stage) => update(id, { stage })}
               onLeadClick={(lead) => { setSelectedLead(lead); setModalMode('view') }}
               onAddLead={() => { setSelectedLead(null); setModalMode('add') }}
+              onContact={handleContact}
+              onDelete={remove}
             />
           } />
           <Route path="tasks" element={<TasksPage />} />
@@ -79,6 +86,7 @@ function AuthedApp() {
           onClose={closeModal}
           onSave={handleSave}
           onDelete={handleDelete}
+          onContact={handleContact}
         />
       )}
       {modalMode === 'add' && (

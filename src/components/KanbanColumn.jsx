@@ -2,7 +2,7 @@ import { Droppable, Draggable } from '@hello-pangea/dnd'
 import LeadCard from './LeadCard'
 import { STAGES } from '../data/pipeline'
 
-export default function KanbanColumn({ stageKey, leads, onLeadClick }) {
+export default function KanbanColumn({ stageKey, leads, onLeadClick, onContact }) {
   const stage = STAGES.find(s => s.key === stageKey)
 
   return (
@@ -23,7 +23,7 @@ export default function KanbanColumn({ stageKey, leads, onLeadClick }) {
             {leads.map((lead, index) => (
               <Draggable key={lead.id} draggableId={lead.id} index={index}>
                 {(provided) => (
-                  <LeadCard lead={lead} provided={provided} onClick={() => onLeadClick(lead)} />
+                  <LeadCard lead={lead} provided={provided} onClick={() => onLeadClick(lead)} onContact={onContact} />
                 )}
               </Draggable>
             ))}

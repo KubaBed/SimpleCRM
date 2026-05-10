@@ -1,16 +1,23 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 import LeadForm from './LeadForm'
 import NotesSection from './NotesSection'
 import ActivityTimeline from './ActivityTimeline'
 import TaskList from './TaskList'
+import { formatRelativePl } from '../lib/dates'
 
-export default function LeadModal({ lead, onClose, onSave, onDelete }) {
+export default function LeadModal({ lead, onClose, onSave, onDelete, onContact }) {
   const isNew = !lead
   const [currentLead, setCurrentLead] = useState(lead)
   const [activeTab, setActiveTab] = useState('info')
   const [deleting, setDeleting] = useState(false)
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
 
   const handleSave = async (data) => {
     try {
@@ -63,21 +70,30 @@ export default function LeadModal({ lead, onClose, onSave, onDelete }) {
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         >
           <div className="flex items-center justify-between p-6 border-b border-gray-100 gap-3">
-            <h3 className="text-lg font-bold text-gray-900 truncate">
-              {isNew ? 'Nowy lead' : `${currentLead?.first_name || ''} ${currentLead?.last_name || ''}`}
-            </h3>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-lg font-bold text-gray-900 truncate">
+                {isNew ? 'Nowy lead' : `${currentLead?.first_name || ''} ${currentLead?.last_name || ''}`}
+              </h3>
+              {!isNew && currentLead?.last_contacted_at && (
+                <div className="text-xs text-gray-400 mt-0.5">
+                  Ostatni kontakt: {formatRelativePl(currentLead.last_contacted_at)}
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-1">
               {!isNew && currentLead?.email && (
                 <a
                   href={`mailto:${currentLead.email}`}
-                  title="Wyślij email"
+                  title="Wyślij email (zapisuje datę kontaktu)"
+                  onClick={() => onContact && onContact(currentLead.id)}
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900"
                 >✉</a>
               )}
               {!isNew && currentLead?.phone && (
                 <a
                   href={`tel:${currentLead.phone}`}
-                  title="Zadzwoń"
+                  title="Zadzwoń (zapisuje datę kontaktu)"
+                  onClick={() => onContact && onContact(currentLead.id)}
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900"
                 >☎</a>
               )}

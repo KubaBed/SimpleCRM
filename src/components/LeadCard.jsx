@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import { getDaysInStage, isStale } from '../hooks/useStaleness'
-
+import { getInitials, getAvatarColor } from '../lib/avatar'
+import { formatRelativePl } from '../lib/dates'
 const SOURCE_COLORS = {
   Email: 'bg-blue-100 text-blue-700',
   LinkedIn: 'bg-indigo-100 text-indigo-700',
@@ -20,10 +21,17 @@ function copyToClipboard(text, label = 'Skopiowano') {
   )
 }
 
-export default function LeadCard({ lead, provided, onClick }) {
+function logContact(leadId, onContact) {
+  if (onContact) onContact(leadId)
+}
+
+export default function LeadCard({ lead, provided, onClick, onContact }) {
   const days = getDaysInStage(lead)
   const stale = isStale(lead)
   const sourceColor = SOURCE_COLORS[lead.source] || SOURCE_COLORS.Inne
+  const initials = getInitials(lead.first_name, lead.last_name)
+  const avatarColor = getAvatarColor(`${lead.first_name || ''} ${lead.last_name || ''}` || lead.email || lead.id)
+  const lastContact = formatRelativePl(lead.last_contacted_at)
 
   return (
     <motion.div
@@ -36,35 +44,42 @@ export default function LeadCard({ lead, provided, onClick }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <div className="font-medium text-sm text-gray-900 truncate">
-            {lead.first_name} {lead.last_name}
-          </div>
-          {lead.company_name && (
-            <div className="text-xs text-gray-500 mt-0.5 truncate">{lead.company_name}</div>
-          )}
+      <div className="flex items-start gap-2.5">
+        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${avatarColor}`}>
+          {initials}
         </div>
-        {stale && (
-          <span
-            className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-rose-100 text-rose-700"
-            title={`Stoi w stage'u ${days} dni`}
-          >
-            🔴 {days}d
-          </span>
-        )}
-        {!stale && days >= 1 && (
-          <span
-            className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-500"
-            title={`Ostatnia zmiana ${days} dni temu`}
-          >
-            {days}d
-          </span>
-        )}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="font-medium text-sm text-gray-900 truncate">
+                {lead.first_name} {lead.last_name}
+              </div>
+              {lead.company_name && (
+                <div className="text-xs text-gray-500 truncate">{lead.company_name}</div>
+              )}
+            </div>
+            {stale && (
+              <span
+                className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-rose-100 text-rose-700"
+                title={`Stoi w stage'u ${days} dni`}
+              >
+                🔴 {days}d
+              </span>
+            )}
+            {!stale && days >= 1 && (
+              <span
+                className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-500"
+                title={`Ostatnia zmiana ${days} dni temu`}
+              >
+                {days}d
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
       {(lead.email || lead.phone) && (
-        <div className="mt-2 space-y-0.5">
+        <div className="mt-2 space-y-0.5 pl-11">
           {lead.email && (
             <div className="text-xs text-gray-500 truncate flex items-center gap-1">
               <span className="text-gray-400">@</span>
@@ -81,7 +96,7 @@ export default function LeadCard({ lead, provided, onClick }) {
       )}
 
       <div className="mt-2 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
           {lead.source && (
             <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${sourceColor}`}>
               {lead.source}
@@ -90,6 +105,11 @@ export default function LeadCard({ lead, provided, onClick }) {
           {lead.estimated_value && (
             <span className="text-xs font-medium text-gray-900">
               {Number(lead.estimated_value).toLocaleString('pl-PL')} PLN
+            </span>
+          )}
+          {lastContact && (
+            <span className="text-[10px] text-gray-400" title={`Ostatni kontakt: ${new Date(lead.last_contacted_at).toLocaleString('pl-PL')}`}>
+              · kontakt {lastContact}
             </span>
           )}
         </div>
@@ -102,8 +122,8 @@ export default function LeadCard({ lead, provided, onClick }) {
           {lead.email && (
             <a
               href={`mailto:${lead.email}`}
-              onClick={stop}
-              title="Wyślij email"
+              onClick={(e) => { stop(e); logContact(lead.id, onContact) }}
+              title="Wyślij email (zapisuje datę kontaktu)"
               className="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-100 hover:text-gray-900 text-sm"
             >
               ✉
@@ -112,8 +132,8 @@ export default function LeadCard({ lead, provided, onClick }) {
           {lead.phone && (
             <a
               href={`tel:${lead.phone}`}
-              onClick={stop}
-              title="Zadzwoń"
+              onClick={(e) => { stop(e); logContact(lead.id, onContact) }}
+              title="Zadzwoń (zapisuje datę kontaktu)"
               className="w-7 h-7 flex items-center justify-center rounded text-gray-500 hover:bg-gray-100 hover:text-gray-900 text-sm"
             >
               ☎

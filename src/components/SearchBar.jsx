@@ -1,4 +1,4 @@
-export default function SearchBar({ value, onChange, placeholder = 'Szukaj...' }) {
+export default function SearchBar({ value, onChange, placeholder = 'Szukaj...', inputRef }) {
   return (
     <div className="relative w-full max-w-md">
       <svg
@@ -15,6 +15,7 @@ export default function SearchBar({ value, onChange, placeholder = 'Szukaj...' }
         <line x1="21" y1="21" x2="16.65" y2="16.65" />
       </svg>
       <input
+        ref={inputRef}
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}

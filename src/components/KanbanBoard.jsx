@@ -2,7 +2,7 @@ import { DragDropContext } from '@hello-pangea/dnd'
 import KanbanColumn from './KanbanColumn'
 import { STAGE_ORDER } from '../data/pipeline'
 
-export default function KanbanBoard({ leads, onStageChange, onLeadClick }) {
+export default function KanbanBoard({ leads, onStageChange, onLeadClick, onContact }) {
   const leadsByStage = {}
   STAGE_ORDER.forEach(stage => { leadsByStage[stage] = [] })
   leads.forEach(lead => {
@@ -24,6 +24,7 @@ export default function KanbanBoard({ leads, onStageChange, onLeadClick }) {
               stageKey={stage}
               leads={leadsByStage[stage]}
               onLeadClick={onLeadClick}
+              onContact={onContact}
             />
           </div>
         ))}
