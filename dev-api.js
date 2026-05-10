@@ -9,7 +9,8 @@ async function collectRoutes(dir, base = '') {
     if (e.name.startsWith('_')) continue
     const full = join(dir, e.name)
     if (e.isDirectory()) {
-      out.push(...await collectRoutes(full, `${base}/${e.name}`))
+      const dirName = e.name.replace(/\[([^\]]+)\]/g, ':$1')
+      out.push(...await collectRoutes(full, `${base}/${dirName}`))
     } else if (e.name.endsWith('.js')) {
       const name = e.name.replace(/\.js$/, '')
       // Convert filename like `leads_[id]` to route `leads/:id`

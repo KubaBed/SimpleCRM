@@ -6,12 +6,14 @@ import NotesSection from './NotesSection'
 import ActivityTimeline from './ActivityTimeline'
 import TaskList from './TaskList'
 import { formatRelativePl } from '../lib/dates'
+import { generateLeadBrief } from '../lib/api'
 
 export default function LeadModal({ lead, onClose, onSave, onDelete, onContact }) {
   const isNew = !lead
   const [currentLead, setCurrentLead] = useState(lead)
   const [activeTab, setActiveTab] = useState('info')
   const [deleting, setDeleting] = useState(false)
+  const [generatingBrief, setGeneratingBrief] = useState(false)
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose() }
@@ -26,6 +28,22 @@ export default function LeadModal({ lead, onClose, onSave, onDelete, onContact }
       toast.success(isNew ? 'Lead utworzony' : 'Zapisano')
     } catch (err) {
       toast.error(err.message || 'Coś poszło nie tak')
+    }
+  }
+
+  const handleGenerateBrief = async () => {
+    if (!currentLead?.id || generatingBrief) return
+    setGeneratingBrief(true)
+    const toastId = toast.loading('Generuję brief…')
+    try {
+      const { lead: updated } = await generateLeadBrief(currentLead.id)
+      setCurrentLead(updated)
+      setActiveTab('notes')
+      toast.success('Brief gotowy', { id: toastId })
+    } catch (err) {
+      toast.error(err.message || 'Nie udało się wygenerować briefu', { id: toastId })
+    } finally {
+      setGeneratingBrief(false)
     }
   }
 
@@ -105,6 +123,15 @@ export default function LeadModal({ lead, onClose, onSave, onDelete, onContact }
                   title="Otwórz stronę WWW"
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900"
                 >⌘</a>
+              )}
+              {!isNew && currentLead?.website && (
+                <button
+                  type="button"
+                  onClick={handleGenerateBrief}
+                  disabled={generatingBrief}
+                  title="Wygeneruj brief ze strony WWW"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50"
+                >{generatingBrief ? '…' : '✨'}</button>
               )}
               {!isNew && currentLead?.email && (
                 <button
