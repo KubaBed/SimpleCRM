@@ -2,13 +2,14 @@
 
 ## Current Focus
 
-Setup lokalny po sandboxie. Kod sklonowany z GitHub (2026-05-10). Następne: wpisać sekrety Supabase do `.env.local`, odpalić `vercel dev`, smoke test API + Kanban.
+Lokalny dev działa single-process na :5173 (`npm run dev`). `dev-api.js` (Vite plugin) emuluje Vercel Functions z `/api/*` lokalnie, czyta `.env.local` przez `loadEnv` w `vite.config.js`. Vercel CLI niepotrzebny do dev — tylko do deploy.
 
 ## Stack pinpoints
 
 - React 19 + Tailwind 4 — bleeding edge. Tailwind 4 nie używa `tailwind.config.js`, tylko plugin `@tailwindcss/vite` + dyrektywy w `src/index.css`. Nie tworzyć ręcznie configa v3-style.
-- Frontend NIE czyta `import.meta.env`. Wszystkie integracje (Supabase, Gmail) są w `/api/*` (Vercel Functions). Lokalnie do testowania API potrzebne `vercel dev`, nie `npm run dev`.
+- Frontend NIE czyta `import.meta.env`. Wszystkie integracje (Supabase, Gmail) są w `/api/*`. Lokalnie obsługiwane przez `dev-api.js` (Vite plugin). Produkcyjnie — Vercel Functions.
 - Kanban: `@hello-pangea/dnd@18` (po bumpie z 16). Komponenty `KanbanBoard.jsx` + `KanbanColumn.jsx`.
+- Filename routing API: `leads_[id].js` → `/api/leads/:id` (mapuje `_[param]` → `/:param`). Zarówno `dev-api.js`, jak i Vercel produkcja.
 
 ## Konwencje projektu
 
@@ -25,8 +26,7 @@ Setup lokalny po sandboxie. Kod sklonowany z GitHub (2026-05-10). Następne: wpi
 ## Komendy szybkie
 
 ```bash
-npm run dev              # Vite tylko frontend, :5173
-npx vercel dev           # frontend + /api/*, :3000 (wymaga `vercel link`)
+npm run dev              # frontend + /api/* w jednym procesie, :5173
 npm run build            # production build
 gh repo view --web       # otwórz repo w przeglądarce
 ```
