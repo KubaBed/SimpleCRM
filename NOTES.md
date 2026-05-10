@@ -58,6 +58,14 @@
 - **Verified**: wszystkie endpointy działają na produkcji. DELETE zwraca `{"success":true}`.
 - Należy pamiętać: przy dodawaniu nowych API routes z `:param`, używać struktury `api/[resource]/[param].js`.
 
+## 2026-05-10 — Google Workspace migration + email blacklist filter
+
+- **Workspace**: `jakub@workshift.pl` primary, `kontakt@` i `kuba@` aliasy
+- **DNS**: MX → Google, SPF → `include:_spf.google.com include:spf.resend.com`, DKIM Google dodany
+- **CRM IMAP**: zmieniono z personal Gmail (`the.bednarz.kuba@gmail.com`) na Workspace (`jakub@workshift.pl`)
+- **Blacklist filter**: cron skipuje systemowe maile (noreply, notifications, billing, newsletter, itp.) — konfigurowalne przez `SKIP_EMAIL_PATTERNS`
+- **Test**: cron przetworzył 3 maile, utworzył 0 leadów (systemowe zablokowane) — działa.
+
 ## TODO (security follow-up)
 - Rotuj App Password `apje mybc ojvk clmr` po zakończeniu sesji — wisiał w chat history.
 
