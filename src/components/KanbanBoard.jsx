@@ -17,14 +17,15 @@ export default function KanbanBoard({ leads, onStageChange, onLeadClick }) {
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory md:snap-none">
         {STAGE_ORDER.map(stage => (
-          <KanbanColumn
-            key={stage}
-            stageKey={stage}
-            leads={leadsByStage[stage]}
-            onLeadClick={onLeadClick}
-          />
+          <div key={stage} className="snap-start shrink-0">
+            <KanbanColumn
+              stageKey={stage}
+              leads={leadsByStage[stage]}
+              onLeadClick={onLeadClick}
+            />
+          </div>
         ))}
       </div>
     </DragDropContext>

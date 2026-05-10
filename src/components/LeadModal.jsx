@@ -55,11 +55,45 @@ export default function LeadModal({ lead, onClose }) {
           exit={{ x: 100, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         >
-          <div className="flex items-center justify-between p-6 border-b border-gray-100">
-            <h3 className="text-lg font-bold text-gray-900">
+          <div className="flex items-center justify-between p-6 border-b border-gray-100 gap-3">
+            <h3 className="text-lg font-bold text-gray-900 truncate">
               {isNew ? 'Nowy lead' : `${currentLead?.first_name || ''} ${currentLead?.last_name || ''}`}
             </h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+            <div className="flex items-center gap-1">
+              {!isNew && currentLead?.email && (
+                <a
+                  href={`mailto:${currentLead.email}`}
+                  title="Wyślij email"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                >✉</a>
+              )}
+              {!isNew && currentLead?.phone && (
+                <a
+                  href={`tel:${currentLead.phone}`}
+                  title="Zadzwoń"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                >☎</a>
+              )}
+              {!isNew && currentLead?.email && (
+                <button
+                  type="button"
+                  title="Skopiuj email"
+                  onClick={() => {
+                    if (navigator?.clipboard) {
+                      navigator.clipboard.writeText(currentLead.email)
+                        .then(() => toast.success('Skopiowano email'))
+                        .catch(() => toast.error('Nie udało się skopiować'))
+                    }
+                  }}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                >⧉</button>
+              )}
+              <button
+                onClick={onClose}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 text-xl leading-none ml-1"
+                title="Zamknij"
+              >&times;</button>
+            </div>
           </div>
 
           <div className="flex border-b border-gray-100 px-6">

@@ -1,11 +1,28 @@
+import { useMemo, useState } from 'react'
 import StatsBar from './StatsBar'
 import KanbanBoard from './KanbanBoard'
 import UpcomingTasks from './UpcomingTasks'
 import EmptyState from './EmptyState'
+import SearchBar from './SearchBar'
 import { useLeads } from '../hooks/useLeads'
+
+function matchesSearch(lead, q) {
+  if (!q) return true
+  const needle = q.toLowerCase().trim()
+  if (!needle) return true
+  return [lead.first_name, lead.last_name, lead.email, lead.company_name, lead.phone]
+    .filter(Boolean)
+    .some((s) => String(s).toLowerCase().includes(needle))
+}
 
 export default function Dashboard({ onLeadClick, onAddLead }) {
   const { leads, loading, update } = useLeads()
+  const [search, setSearch] = useState('')
+
+  const filteredLeads = useMemo(
+    () => leads.filter((l) => matchesSearch(l, search)),
+    [leads, search]
+  )
 
   const handleStageChange = (leadId, newStage) => {
     update(leadId, { stage: newStage })
@@ -17,7 +34,7 @@ export default function Dashboard({ onLeadClick, onAddLead }) {
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <h2 className="text-xl font-bold text-gray-900">Dashboard</h2>
         <button
           onClick={onAddLead}
@@ -45,7 +62,26 @@ export default function Dashboard({ onLeadClick, onAddLead }) {
         />
       ) : (
         <>
-          <KanbanBoard leads={leads} onStageChange={handleStageChange} onLeadClick={onLeadClick} />
+          <div className="mb-4">
+            <SearchBar
+              value={search}
+              onChange={setSearch}
+              placeholder="Szukaj leada (imię, firma, email, telefon)..."
+            />
+          </div>
+
+          {filteredLeads.length === 0 ? (
+            <div className="text-sm text-gray-500 py-8 text-center">
+              Brak wyników dla „{search}".
+            </div>
+          ) : (
+            <KanbanBoard
+              leads={filteredLeads}
+              onStageChange={handleStageChange}
+              onLeadClick={onLeadClick}
+            />
+          )}
+
           <div className="mt-6">
             <UpcomingTasks />
           </div>
