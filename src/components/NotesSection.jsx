@@ -1,8 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { updateLead } from '../lib/api'
 
 export default function NotesSection({ leadId, notes: initialNotes }) {
   const [notes, setNotes] = useState(initialNotes || '')
+
+  useEffect(() => {
+    setNotes(initialNotes || '')
+  }, [initialNotes])
 
   const save = async () => {
     await updateLead(leadId, { notes })

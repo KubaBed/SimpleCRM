@@ -48,3 +48,7 @@ export function updateTask(taskId, data) {
 export function getActivity(leadId) {
   return request(`/activity?lead_id=${leadId}`)
 }
+
+export function generateLeadBrief(leadId) {
+  return request(`/leads/${leadId}/brief`, { method: 'POST' })
+}
