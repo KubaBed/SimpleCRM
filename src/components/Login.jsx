@@ -19,7 +19,10 @@ export default function Login() {
         body: JSON.stringify({ password })
       })
       if (res.ok) {
-        const next = params.get('next') || '/'
+        const raw = params.get('next') || '/'
+        // Reject scheme-relative URLs ("//evil.com"), absolute URLs ("https://..."),
+        // and anything not starting with a single "/" — prevents open redirect.
+        const next = /^\/[^/\\]/.test(raw) ? raw : '/'
         navigate(next, { replace: true })
       } else {
         const data = await res.json().catch(() => ({}))

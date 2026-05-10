@@ -40,7 +40,8 @@ export default async function middleware(request) {
 
   // Strona webowa → redirect na /login
   const loginUrl = new URL('/login', request.url)
-  if (pathname !== '/') {
+  // Same-origin path only (single leading slash, no scheme-relative // attempts)
+  if (pathname !== '/' && /^\/[^/\\]/.test(pathname)) {
     loginUrl.searchParams.set('next', pathname + url.search)
   }
   return Response.redirect(loginUrl, 307)
