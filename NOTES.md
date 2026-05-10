@@ -66,6 +66,16 @@
 - **Blacklist filter**: cron skipuje systemowe maile (noreply, notifications, billing, newsletter, itp.) — konfigurowalne przez `SKIP_EMAIL_PATTERNS`
 - **Test**: cron przetworzył 3 maile, utworzył 0 leadów (systemowe zablokowane) — działa.
 
+## 2026-05-11 — AI Brief Agent (zero-cost AI)
+
+- Backend: `api/leads/[id]/brief.js` — cheerio scraping + markdown brief + gotowy prompt do AI
+- Scrapuje: title, meta description, H1/H2, pierwszy paragraf, telefon, email, social media
+- Generuje: brief w notatkach + prompt do skopiowania przez użytkownika do własnego AI (zero kosztów API)
+- Dedup: `mergeNotes()` nadpisuje stary brief (regex `/## Brief .../`), nie duplikuje
+- Frontend: `LeadModal` przycisk "📄" (⏳ podczas generowania), toast feedback, live update notatek
+- Fix: endpoint zwraca `notes: newNotes`, frontend używa `result.notes` (było `result.lead?.notes` — undefined)
+- Build: vite build OK
+
 ## TODO (security follow-up)
 - Rotuj App Password `apje mybc ojvk clmr` po zakończeniu sesji — wisiał w chat history.
 

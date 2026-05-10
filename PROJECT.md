@@ -41,8 +41,8 @@ Bez Supabase — frontend działa, dane puste. Bez Gmaila/CRON — Kanban dział
 
 ## Next action
 
-1. **Rotacja sekretów** (security follow-up): APP_PASSWORD, GMAIL_APP_PASSWORD, SESSION_SECRET — wszystkie wisiały w chat history.
-2. **AI Brief Agent** (plan gotowy, zaparkowany): Przycisk w LeadModal "Generuj brief" → scrapuje `lead.website`, generuje markdown z danymi + gotowy prompt do AI, zapisuje w `lead.notes`. Zero kosztów API — użytkownik kopiuje prompt do swojego AI. Tech: `cheerio`, endpoint `POST /api/leads/:id/brief`.
+1. **Deploy AI Brief Agent**: `git push` master → Vercel deploy. Smoke test na prod: otworzyć leada z `website` → "Generuj brief" → sprawdzić notatki.
+2. **Rotacja sekretów** (security follow-up): APP_PASSWORD, GMAIL_APP_PASSWORD, SESSION_SECRET — wszystkie wisiały w chat history.
 3. **TIER 3**: email composer (Gmail SMTP / Resend), templates, lead scoring, settings page, calendar sync.
 4. **Dev**: `npm run dev` → smoke test po zmianach (lokalny dev wymaga `.env.local` z sekretami).
 

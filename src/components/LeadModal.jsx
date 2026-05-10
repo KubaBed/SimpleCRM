@@ -7,11 +7,12 @@ import ActivityTimeline from './ActivityTimeline'
 import TaskList from './TaskList'
 import { formatRelativePl } from '../lib/dates'
 
-export default function LeadModal({ lead, onClose, onSave, onDelete, onContact }) {
+export default function LeadModal({ lead, onClose, onSave, onDelete, onContact, onGenerateBrief }) {
   const isNew = !lead
   const [currentLead, setCurrentLead] = useState(lead)
   const [activeTab, setActiveTab] = useState('info')
   const [deleting, setDeleting] = useState(false)
+  const [generatingBrief, setGeneratingBrief] = useState(false)
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose() }
@@ -40,6 +41,20 @@ export default function LeadModal({ lead, onClose, onSave, onDelete, onContact }
     } catch (err) {
       toast.error(err.message || 'Nie udało się usunąć')
       setDeleting(false)
+    }
+  }
+
+  const handleGenerateBrief = async () => {
+    if (!currentLead || !onGenerateBrief || !currentLead.website) return
+    setGeneratingBrief(true)
+    try {
+      const result = await onGenerateBrief(currentLead.id)
+      setCurrentLead(prev => ({ ...prev, notes: result.notes || prev.notes }))
+      toast.success('Brief wygenerowany! Sprawdź zakładkę Notatki.')
+    } catch (err) {
+      toast.error(err.message || 'Nie udało się wygenerować briefu')
+    } finally {
+      setGeneratingBrief(false)
     }
   }
 
@@ -105,6 +120,17 @@ export default function LeadModal({ lead, onClose, onSave, onDelete, onContact }
                   title="Otwórz stronę WWW"
                   className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900"
                 >⌘</a>
+              )}
+              {!isNew && currentLead?.website && onGenerateBrief && (
+                <button
+                  type="button"
+                  title="Generuj brief ze strony"
+                  onClick={handleGenerateBrief}
+                  disabled={generatingBrief}
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {generatingBrief ? '⏳' : '📄'}
+                </button>
               )}
               {!isNew && currentLead?.email && (
                 <button

@@ -7,6 +7,7 @@ import LeadModal from './components/LeadModal'
 import TasksPage from './components/TasksPage'
 import Login from './components/Login'
 import { useLeads } from './hooks/useLeads'
+import { generateBrief } from './lib/api'
 
 function AuthGate({ children }) {
   const [authState, setAuthState] = useState('loading') // loading | authed | unauthed
@@ -87,6 +88,7 @@ function AuthedApp() {
           onSave={handleSave}
           onDelete={handleDelete}
           onContact={handleContact}
+          onGenerateBrief={generateBrief}
         />
       )}
       {modalMode === 'add' && (
