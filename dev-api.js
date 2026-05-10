@@ -13,7 +13,7 @@ async function collectRoutes(dir, base = '') {
     } else if (e.name.endsWith('.js')) {
       const name = e.name.replace(/\.js$/, '')
       // Convert filename like `leads_[id]` to route `leads/:id`
-      const routeName = name.replace(/_\[([^\]]+)\]/g, '/:$1').replace(/\[([^\]]+)\]/g, ':$1')
+      const routeName = name === 'index' ? '' : name.replace(/_\[([^\]]+)\]/g, '/:$1').replace(/\[([^\]]+)\]/g, ':$1')
       out.push({ route: `${base}/${routeName}`, file: full })
     }
   }
